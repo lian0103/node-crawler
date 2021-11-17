@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"
+      integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.24.0/axios.min.js"
+      integrity="sha512-u9akINsQsAkG9xjc1cnGF4zw5TFDwkxuc9vUp5dltDWYCSmyd0meygbvgXrlc/z7/o4a19Fb5V0OUE58J7dcyw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"
+      integrity="sha512-qTXRIMyZIFb8iQcfjXWCO8+M5Tbc38Qi5WzdPOYZHIlZpzBHG3L3by84BBBOiRGiEb7KKtAOAs5qYdUiZiQNNQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <link
+      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.10.2/viewer.min.js"
+      integrity="sha512-lzNiA4Ry7CjL8ewMGFZ5XD4wIVaUhvV3Ct9BeFmWmyq6MFc42AdOCUiuUtQgkrVVELHA1kT7xfSLoihwssusQw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.10.2/viewer.css"
+      integrity="sha512-HGWrJz+Lr07phD0DNoLsSVwn3przno/eSLf1cGOrLzr6c7NUZROZJPhQdSPmLHNbsO0HP2UfUnpKTMiVxonEHw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <style>
+      body {
+        overflow: hidden;
+        background-color: antiquewhite;
+      }
+      .header {
+        height: 62px;
+      }
+      .header label {
+        flex-grow: 1;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+      }
+      span {
+        white-space: nowrap;
+      }
+      .header label button {
+        line-height: 1;
+      }
+
+      #listCard {
+        min-width: 350px;
+        max-height: calc(100vh - 85px);
+        overflow-y: scroll;
+      }
+      #itemContent {
+        max-height: calc(100vh - 85px);
+        overflow-y: scroll;
+      }
+      @media screen and (max-width: 800px) {
+        #listCard {
+          max-height: calc(50vh - 45px);
+          overflow-y: scroll;
+        }
+        #itemContent {
+          max-height: calc(50vh - 45px);
+          overflow-y: scroll;
+        }
+      }
+      ::-webkit-scrollbar-track {
+        background-color: #f5f5f5;
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+        background-color: #f5f5f5;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        border-radius: 10px;
+        background-image: -webkit-gradient(
+          linear,
+          left bottom,
+          left top,
+          color-stop(0.44, rgb(122, 153, 217)),
+          color-stop(0.72, rgb(73, 125, 189)),
+          color-stop(0.86, rgb(28, 58, 148))
+        );
+      }
+    </style>
+
+    <title>crawler</title>
+  </head>
+  <body>
+    <div class="header w-full px-2 my-2 flex container mx-auto">
+      <label class="block text-left inline-block px-4">
+        <span class="text-gray-700 py-2">看板選擇</span>
+        <select
+          id="selectBoard"
+          class="
+            shadow
+            appearance-none
+            border
+            rounded
+            w-full
+            py-2
+            px-3
+            text-gray-700
+            leading-tight
+            focus:outline-none focus:shadow-outline
+            text-center
+          "
+        >
+          <option value="Stock">股票版</option>
+          <option value="Beauty">表特版</option>
+        </select>
+      </label>
+      <label class="block text-left inline-block px-4">
+        <span class="text-gray-700 py-2">撈取頁數</span>
+        <input
+          id="inputPage"
+          value="2"
+          class="
+            shadow
+            appearance-none
+            border
+            rounded
+            w-full
+            py-2
+            px-3
+            text-gray-700
+            leading-tight
+            focus:outline-none focus:shadow-outline
+            text-center
+          "
+          type="number"
+          max="2"
+          min="1"
+        />
+      </label>
+      <label class="block text-left inline-block flex px-4">
+        <button
+          id="btnSearch"
+          class="
+            w-24
+            h-8
+            bg-blue-500
+            hover:bg-blue-700
+            text-white
+            font-bold
+            px-4
+            mt-2
+            rounded-full
+          "
+        >
+          搜尋
+        </button>
+      </label>
+    </div>
+    <div class="container flex w-full mx-auto flex-col md:flex-row">
+      <div id="listCard" class="py-2 w-full md:w-1/4 overflow-x-hidden"></div>
+      <div id="itemContent" class="py-2 w-full md:w-3/4 flex flex-wrap"></div>
+    </div>
+
+    <script>
+      $(document).ready(function () {
+        $("#btnSearch").on("click", function () {
+          let board = $("#selectBoard").val();
+          let page = $("#inputPage").val();
+          console.log(board);
+          console.log(page);
+
+          let queryUrl = `/pttCrawler?board=${board}&page=${page}`;
+
+          axios.get(queryUrl).then((res) => {
+            console.log(res);
+            let data = res.data.data
+              .reduce((prev, next) => prev.concat(next))
+              .filter((item) => item.link);
+            let htmltemp = "";
+
+            data.forEach((item) => {
+              let temp = `
+                <div class="flex h-24 max-width w-full bg-white shadow-md rounded-lg overflow-hidden mx-2 my-2" onclick='handleCardClick( "{{link}}" )'>
+                    <div class="w-2 bg-gray-800"></div>
+                    <div class="flex items-center px-2 py-3">
+                        <img
+                        class="w-10 h-10 object-cover rounded-full"
+                        alt="User avatar"
+                        src="https://images.unsplash.com/photo-1477118476589-bff2c5c4cfbb?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=200&q=200"
+                        />
+                        <div class="mx-3">
+                        <p class="text-gray-600">{{title}} {{date}}</p>
+                        <p class="text-gray-600">作者:{{author}}</p>
+                        </div>
+                    </div>
+                </div>
+                `;
+              //www.ptt.cc/bbs/Beauty/M.1636653938.A.CA9.html
+              temp = temp.replace("{{link}}", "https://www.ptt.cc" + item.link);
+              temp = temp.replace("{{title}}", item.title);
+              temp = temp.replace("{{date}}", item.date);
+              temp = temp.replace("{{author}}", item.author);
+              htmltemp += temp;
+            });
+            $("#listCard").empty();
+            $("#listCard").append(htmltemp);
+          });
+        });
+
+        $("#btnSearch").click();
+      });
+
+      function handleCardClick(link) {
+        console.log(link);
+
+        let board = $("#selectBoard").val();
+
+        if (["Stock"].includes(board)) {
+          let width =
+            window.innerWidth > 800
+              ? window.innerWidth - $("#listCard").width() - 20
+              : window.innerWidth;
+          let height =
+            window.innerWidth > 800
+              ? window.innerHeight - 100
+              : window.innerHeight / 2 - 50;
+
+          let htmlTemp = `<iframe class="mx-4" src="${link}" width="${width}" height="${height}">`;
+          $("#itemContent").empty();
+          $("#itemContent").append(htmlTemp);
+        } else if (["Beauty"].includes(board)) {
+          let queryUrl = `/pttCrawler/targetImgs?url=${link}`;
+          axios.get(queryUrl).then((res) => {
+            console.log(res);
+            let target = res.data.data || [];
+            if (target.length > 0) {
+              let htmlTemp = "<ul id='images'>";
+              target.forEach((img, index) => {
+                htmlTemp += `<li class="inline-block w-1/2"><img id=${
+                  "img" + index
+                } onclick='handleView(${index})' class="object-contain" src="${img}" alt="Picture ${index}"></li>`;
+              });
+              htmlTemp += "</ul>";
+              $("#itemContent").empty();
+              $("#itemContent").append(htmlTemp);
+            } else {
+              let htmlTemp = "<p>無圖片</p>";
+              $("#itemContent").empty();
+              $("#itemContent").append(htmlTemp);
+            }
+          });
+        }
+      }
+
+      function handleView(idx) {
+        console.log(idx);
+        const gallery = new Viewer(document.getElementById("images"));
+      }
+    </script>
+  </body>
+</html>
